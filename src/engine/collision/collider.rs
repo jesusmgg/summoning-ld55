@@ -108,7 +108,7 @@ impl ColliderMgr {
         collision_count
     }
 
-    fn intersect_point_single(
+    pub fn intersect_point_single(
         point: &f32::Vec2,
         test_bbox: &Rect,
         test_center: &f32::Vec2,

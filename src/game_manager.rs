@@ -84,7 +84,7 @@ impl GameMgr {
             quit();
         }
 
-        self.player_unit_mgr.input();
+        self.player_unit_mgr.input(&self.collider_mgr);
     }
 
     pub fn update(&mut self) {
@@ -102,6 +102,7 @@ impl GameMgr {
         self.scene_mgr.render(&self.texture2d_mgr);
         self.sprite_mgr.render(&self.texture2d_mgr);
         self.collider_mgr.render();
+        self.player_unit_mgr.render(&self.collider_mgr);
         self.diagnostics_mgr.render();
     }
 }
