@@ -316,14 +316,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
-name = "pipe-warp"
-version = "0.1.0"
-dependencies = [
- "macroquad",
- "tiled",
-]
-
-[[package]]
 name = "pkg-config"
 version = "0.3.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -385,6 +377,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dbff4acf519f630b3a3ddcfaea6c06b42174d9a44bc70c620e9ed1649d58b82a"
 dependencies = [
  "version_check",
+]
+
+[[package]]
+name = "summoning-ld55"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+ "tiled",
 ]
 
 [[package]]

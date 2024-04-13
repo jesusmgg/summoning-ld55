@@ -9,7 +9,7 @@ use engine::{
 use game_manager::GameMgr;
 use macroquad::window::next_frame;
 
-#[macroquad::main("Pipe Warp")]
+#[macroquad::main("summoning-ld55")]
 async fn main() {
     set_active_log_level(LogLevel::DEBUG);
 

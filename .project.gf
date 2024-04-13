@@ -1,4 +1,4 @@
 [executable]
-path=target/debug/pipe-warp
+path=target/debug/summoning-ld55
 arguments=
 ask_directory=1
