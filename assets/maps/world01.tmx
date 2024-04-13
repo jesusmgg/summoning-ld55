@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="11">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="11">
  <tileset firstgid="1" source="../tilesets/world01.tsx"/>
- <layer id="1" name="Ground" width="30" height="20">
+ <layer id="1" name="Ground" width="30" height="17">
   <data encoding="base64" compression="zstd">
-   KLUv/WBgCCUBADABAAAAAgEJgFC3Dh12FdDK9lDV+5XmgbpsD6oMUICy6asuBQ==
+   KLUv/WD4BiUBADABAAAAAgEJgFC3DrUdBbSyPVT1fqV5oC7bgyoDFKBs+qpLAQ==
   </data>
  </layer>
  <objectgroup id="3" name="Objects">

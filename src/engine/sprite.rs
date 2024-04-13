@@ -144,6 +144,7 @@ impl Texture2dMgr {
 
     pub async fn add_from_file(&mut self, file_path: &str) -> usize {
         let texture = load_texture(file_path).await.unwrap();
+        texture.set_filter(macroquad::texture::FilterMode::Nearest);
 
         self.texture.push(texture);
 
