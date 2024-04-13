@@ -85,7 +85,7 @@ impl ColliderMgr {
         let mut collision_count: usize = 0;
 
         for i in 0..self.len() {
-            if i == index {
+            if i == index || !self.is_active(i) {
                 continue;
             }
 
@@ -173,7 +173,7 @@ impl ColliderMgr {
         let self_center = self_bbox.center();
 
         for i in 0..self.len() {
-            if i == index {
+            if i == index || !self.is_active(i) {
                 continue;
             }
 
