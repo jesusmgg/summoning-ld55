@@ -1,5 +1,6 @@
 //! Common engine related systems and functions.
 
+pub mod camera;
 pub mod collision;
 pub mod diagnostics;
 pub mod file;
