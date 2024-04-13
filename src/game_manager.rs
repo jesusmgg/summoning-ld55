@@ -1,4 +1,5 @@
 use crate::engine::{
+    camera::camera::CameraMgr,
     collision::collider::ColliderMgr,
     diagnostics::DiagnosticsMgr,
     scene::SceneMgr,
@@ -20,6 +21,7 @@ pub struct GameMgr {
     pub scene_mgr: SceneMgr,
     pub sprite_mgr: SpriteMgr,
     pub collider_mgr: ColliderMgr,
+    pub camera_mgr: CameraMgr,
     pub diagnostics_mgr: DiagnosticsMgr,
 
     pub player_unit_mgr: PlayerUnitMgr,
@@ -36,6 +38,7 @@ impl GameMgr {
         let sprite_mgr = SpriteMgr::new();
         let collider_mgr = ColliderMgr::new();
         let scene_mgr = SceneMgr::new();
+        let camera_mgr = CameraMgr::new();
         let diagnostics_mgr = DiagnosticsMgr::new();
 
         let player_unit_mgr = PlayerUnitMgr::new();
@@ -47,6 +50,7 @@ impl GameMgr {
             sprite_mgr,
             collider_mgr,
             scene_mgr,
+            camera_mgr,
             diagnostics_mgr,
 
             player_unit_mgr,
@@ -59,6 +63,7 @@ impl GameMgr {
     pub async fn init(&mut self) {
         self.diagnostics_mgr.init();
         self.scene_mgr.init(self.pc_assets_folder.clone()).await;
+        self.camera_mgr.init();
     }
 
     pub async fn spawn(&mut self) {
@@ -79,7 +84,8 @@ impl GameMgr {
             quit();
         }
 
-        self.player_unit_mgr.input(&self.collider_mgr);
+        self.player_unit_mgr
+            .input(&self.collider_mgr, &self.camera_mgr);
     }
 
     pub fn update(&mut self) {

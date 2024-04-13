@@ -1,7 +1,7 @@
 use crate::{
     engine::collision::collider::{self, ColliderMgr, Hit},
-    engine::scene::SceneMgr,
     engine::sprite::{SpriteMgr, Texture2dMgr},
+    engine::{camera::camera::CameraMgr, scene::SceneMgr},
 };
 use macroquad::math::f32;
 use macroquad::text::draw_text;
@@ -91,7 +91,7 @@ impl PlayerUnitMgr {
         if index == 0 {
             assert!(
                 team == PlayerTeam::Player,
-                "First unit added should have 'player' team."
+                "First unit added should have 'Player' team."
             );
         }
 
@@ -175,6 +175,15 @@ impl PlayerUnitMgr {
                     ),
                 };
 
+            let start_active =
+                match scene_mgr.get_object_property_bool(*scene_object_i, "start_active") {
+                    Some(move_speed) => move_speed,
+                    None => panic!(
+                        "`start_active` property is required for PlayerUnit object `{:?}`",
+                        name
+                    ),
+                };
+
             let position = scene_mgr.object_position[*scene_object_i].unwrap();
 
             let new_index = self
@@ -183,10 +192,7 @@ impl PlayerUnitMgr {
 
             sprite_mgr.position[self.sprite_i[new_index].unwrap()] = position;
 
-            // if new_index == 0 {
-            // self.set_active(new_index, true, sprite_mgr, collider_mgr);
-            // }
-            self.set_active(new_index, true, sprite_mgr, collider_mgr);
+            self.set_active(new_index, start_active, sprite_mgr, collider_mgr);
         }
     }
 
@@ -204,8 +210,9 @@ impl PlayerUnitMgr {
         collider_mgr.set_active(self.collider_i[index].unwrap(), is_active);
     }
 
-    pub fn input(&mut self, collider_mgr: &ColliderMgr) {
-        (self.mouse_pos.x, self.mouse_pos.y) = mouse_position();
+    pub fn input(&mut self, collider_mgr: &ColliderMgr, camera_mgr: &CameraMgr) {
+        self.mouse_pos = camera_mgr.mouse_world_position();
+
         let is_mouse_r_pressed = is_mouse_button_pressed(MouseButton::Right);
         let is_mouse_l_pressed = is_mouse_button_pressed(MouseButton::Left);
 

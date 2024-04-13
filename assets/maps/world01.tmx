@@ -11,6 +11,7 @@
   <object id="5" name="PlayerUnit01" type="PlayerUnit" x="38.247" y="343.231">
    <properties>
     <property name="move_speed" type="float" value="100"/>
+    <property name="start_active" type="bool" value="true"/>
     <property name="team" value="Player"/>
    </properties>
    <point/>
@@ -19,6 +20,7 @@
   <object id="9" name="PlayerUnit02" type="PlayerUnit" x="152.551" y="377.976">
    <properties>
     <property name="move_speed" type="float" value="100"/>
+    <property name="start_active" type="bool" value="true"/>
     <property name="team" value="Player"/>
    </properties>
    <point/>
@@ -26,6 +28,7 @@
   <object id="10" name="PlayerUnit03" type="PlayerUnit" x="78.7045" y="480.972">
    <properties>
     <property name="move_speed" type="float" value="100"/>
+    <property name="start_active" type="bool" value="false"/>
     <property name="team" value="Player"/>
    </properties>
    <point/>
