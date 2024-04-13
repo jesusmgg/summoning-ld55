@@ -37,6 +37,7 @@ pub struct SceneMgr {
     pub object_class: Vec<Option<String>>,
     pub object_position: Vec<Option<f32::Vec2>>,
     pub object_size: Vec<Option<f32::Vec2>>,
+    pub object_properties: Vec<Option<tiled::Properties>>,
 
     // Tile layer fields
     pub tile_id: Vec<Option<u32>>,
@@ -68,6 +69,7 @@ impl SceneMgr {
         let object_class = Vec::with_capacity(MAX_TILE_COUNT);
         let object_position = Vec::with_capacity(MAX_TILE_COUNT);
         let object_size = Vec::with_capacity(MAX_TILE_COUNT);
+        let object_properties = Vec::with_capacity(MAX_TILE_COUNT);
 
         let tile_id = Vec::with_capacity(MAX_TILE_COUNT);
         let tileset_id = Vec::with_capacity(MAX_TILE_COUNT);
@@ -93,6 +95,7 @@ impl SceneMgr {
             object_class,
             object_position,
             object_size,
+            object_properties,
 
             tile_id,
             tileset_id,
@@ -136,6 +139,7 @@ impl SceneMgr {
         self.object_class.push(None);
         self.object_position.push(None);
         self.object_size.push(None);
+        self.object_properties.push(None);
 
         self.tile_id.push(Some(tile_id));
         self.tileset_id.push(Some(tileset_id));
@@ -153,6 +157,7 @@ impl SceneMgr {
         object_class: String,
         object_position: f32::Vec2,
         object_size: Option<f32::Vec2>,
+        object_properties: tiled::Properties,
     ) -> usize {
         self.scene_id.push(scene_id);
 
@@ -163,6 +168,7 @@ impl SceneMgr {
         self.object_class.push(Some(object_class));
         self.object_position.push(Some(object_position));
         self.object_size.push(object_size);
+        self.object_properties.push(Some(object_properties));
 
         self.tile_id.push(None);
         self.tileset_id.push(None);
@@ -249,6 +255,8 @@ impl SceneMgr {
                 }
             };
 
+            let object_properties = object.properties.clone();
+
             self.add_object(
                 scene_id,
                 layer_id,
@@ -256,6 +264,7 @@ impl SceneMgr {
                 object_class.to_string(),
                 object_position,
                 object_size,
+                object_properties,
             );
         }
     }
@@ -360,6 +369,75 @@ impl SceneMgr {
         for cached_tile in self.tile_renderer_cache.iter() {
             texture_mgr.render_texture_unscaled(cached_tile.texture_i, cached_tile.position);
         }
+    }
+
+    // TODO: generalize get_object_property methods
+    pub fn get_object_property_string(&self, index: usize, property_name: &str) -> Option<String> {
+        let value: Option<String> = match self.object_properties[index].as_ref() {
+            Some(property) => match property.get(property_name) {
+                Some(property_value) => match property_value {
+                    tiled::PropertyValue::StringValue(value) => Some(value.clone()),
+                    _ => {
+                        log::error(format!(
+                            "Property `{:?}` of object `{:?}` was requested as a string and has another type",
+                            &property_name,
+                            &self.object_name[index]
+                        ));
+                        None
+                    }
+                },
+                None => {
+                    log::error(format!(
+                        "Property `{:?}` not found for object `{:?}`",
+                        &property_name, &self.object_name[index]
+                    ));
+                    None
+                }
+            },
+            None => {
+                log::error(format!(
+                    "Object `{:?}` has no properties",
+                    &self.object_name[index]
+                ));
+                None
+            }
+        };
+
+        value
+    }
+
+    pub fn get_object_property_float(&self, index: usize, property_name: &str) -> Option<f32> {
+        let value: Option<f32> = match self.object_properties[index].as_ref() {
+            Some(property) => match property.get(property_name) {
+                Some(property_value) => match property_value {
+                    tiled::PropertyValue::FloatValue(value) => Some(*value),
+                    _ => {
+                        log::error(format!(
+                            "Property `{:?}` of object `{:?}` was requested as a float and has another type",
+                            &property_name,
+                            &self.object_name[index]
+                        ));
+                        None
+                    }
+                },
+                None => {
+                    log::error(format!(
+                        "Property `{:?}` not found for object `{:?}`",
+                        &property_name, &self.object_name[index]
+                    ));
+                    None
+                }
+            },
+            None => {
+                log::error(format!(
+                    "Object `{:?}` has no properties",
+                    &self.object_name[index]
+                ));
+                None
+            }
+        };
+
+        value
     }
 }
 
