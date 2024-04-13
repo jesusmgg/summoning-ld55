@@ -1,3 +1,9 @@
+# Ludum Dare 55 entry
+Theme: Summoning
+
+Base code is from my bespoke engine `pipe-warp`, which is a 2D game engine built on top of Rust, Macroquad and Tiled.
+
+
 ## Engine lifecycle functions
 Systems should implement these functions as required.
 The `GameMgr` calls them in the required order and the `main` function implements the main game loop.
