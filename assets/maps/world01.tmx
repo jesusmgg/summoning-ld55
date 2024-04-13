@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="11">
+ <tileset firstgid="1" source="../tilesets/world01.tsx"/>
+ <layer id="1" name="Ground" width="30" height="20">
+  <data encoding="base64" compression="zstd">
+   KLUv/WBgCCUBADABAAAAAgEJgFC3Dh12FdDK9lDV+5XmgbpsD6oMUICy6asuBQ==
+  </data>
+ </layer>
+ <objectgroup id="3" name="Objects">
+  <object id="4" type="Wall" x="126.915" y="127.915" width="320.211" height="127.429"/>
+  <object id="5" name="PlayerUnit01" type="PlayerUnit" x="38.247" y="343.231">
+   <properties>
+    <property name="move_speed" type="float" value="100"/>
+    <property name="team" value="Player"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="7" type="Wall" x="288.801" y="349.241" width="320.211" height="127.429"/>
+  <object id="9" name="PlayerUnit02" type="PlayerUnit" x="152.551" y="377.976">
+   <properties>
+    <property name="move_speed" type="float" value="100"/>
+    <property name="team" value="Player"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="10" name="PlayerUnit03" type="PlayerUnit" x="78.7045" y="480.972">
+   <properties>
+    <property name="move_speed" type="float" value="100"/>
+    <property name="team" value="Player"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+</map>

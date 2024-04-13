@@ -11,7 +11,7 @@ use macroquad::{
     window::screen_height,
 };
 
-const UNIT_COUNT: usize = 5;
+const MAX_UNIT_COUNT: usize = 1024;
 const MOVE_DISTANCE_TOLERANCE: f32 = 1.0;
 
 pub struct PlayerUnitMgr {
@@ -20,6 +20,7 @@ pub struct PlayerUnitMgr {
     input_move: Vec<f32::Vec2>,
     is_selected: Vec<bool>,
     is_active: Vec<bool>,
+    team: Vec<PlayerTeam>,
 
     collider_i: Vec<Option<usize>>,
     sprite_i: Vec<Option<usize>>,
@@ -34,19 +35,21 @@ pub struct PlayerUnitMgr {
 }
 
 impl PlayerUnitMgr {
-    pub fn new(move_speed: f32) -> Self {
-        let move_speed = vec![move_speed; UNIT_COUNT];
-        let input_move = vec![f32::Vec2::ZERO; UNIT_COUNT];
-        let is_selected = vec![false; UNIT_COUNT];
-        let is_active = vec![false; UNIT_COUNT];
+    pub fn new() -> Self {
+        let move_speed = Vec::with_capacity(MAX_UNIT_COUNT);
+        let input_move = Vec::with_capacity(MAX_UNIT_COUNT);
+        let is_selected = Vec::with_capacity(MAX_UNIT_COUNT);
+        let is_active = Vec::with_capacity(MAX_UNIT_COUNT);
 
-        let collider_i = Vec::with_capacity(UNIT_COUNT);
-        let sprite_i = Vec::with_capacity(UNIT_COUNT);
+        let team = Vec::with_capacity(MAX_UNIT_COUNT);
 
-        let movement_hit_buffer = Vec::with_capacity(UNIT_COUNT);
-        let selection_hit = Vec::with_capacity(UNIT_COUNT);
+        let collider_i = Vec::with_capacity(MAX_UNIT_COUNT);
+        let sprite_i = Vec::with_capacity(MAX_UNIT_COUNT);
 
-        let move_target = vec![None; UNIT_COUNT];
+        let movement_hit_buffer = Vec::with_capacity(MAX_UNIT_COUNT);
+        let selection_hit = Vec::with_capacity(MAX_UNIT_COUNT);
+
+        let move_target = Vec::with_capacity(MAX_UNIT_COUNT);
 
         let mouse_pos = f32::Vec2::ZERO;
 
@@ -55,6 +58,7 @@ impl PlayerUnitMgr {
             input_move,
             is_selected,
             is_active,
+            team,
 
             collider_i,
             sprite_i,
@@ -68,69 +72,121 @@ impl PlayerUnitMgr {
         }
     }
 
-    pub async fn init(
+    pub async fn add(
         &mut self,
+        move_speed: f32,
+        team: PlayerTeam,
         sprite_mgr: &mut SpriteMgr,
-        texture_mgr: &mut Texture2dMgr,
         collider_mgr: &mut ColliderMgr,
-    ) {
-        for i in 0..UNIT_COUNT {
-            // Create hit buffers
-            self.movement_hit_buffer
-                .push(ColliderMgr::create_hit_buffer(
-                    collider::MAX_COLLISION_COUNT,
-                ));
-            self.selection_hit.push(Hit {
-                is_colliding: false,
-                collider_i: usize::MAX,
-                position: f32::Vec2::ZERO,
-                delta: f32::Vec2::ZERO,
-                normal: f32::Vec2::ZERO,
-            });
+        texture_mgr: &mut Texture2dMgr,
+    ) -> usize {
+        self.move_speed.push(move_speed);
+        self.input_move.push(f32::Vec2::ZERO);
+        self.is_selected.push(false);
+        self.is_active.push(false);
+        self.move_target.push(None);
 
-            // Create sprite
-            let sprite_i = sprite_mgr
-                .add_from_file(
-                    "sprites/player01.png",
-                    f32::Vec2::ZERO,
-                    f32::Vec2 { x: 0.1, y: 0.1 },
-                    texture_mgr,
-                )
-                .await;
-            self.sprite_i.push(Some(sprite_i));
+        let index = self.len() - 1;
 
-            // Create collider
-            let collider_i = collider_mgr.add_from_sprite(sprite_i, None, sprite_mgr);
-            self.collider_i.push(Some(collider_i));
-            collider_mgr.render_bbox[collider_i] = false;
-
-            // Set not active
-            self.set_active(i, false, sprite_mgr, collider_mgr);
+        if index == 0 {
+            assert!(
+                team == PlayerTeam::Player,
+                "First unit added should have 'player' team."
+            );
         }
+
+        self.team.push(team);
+
+        // Create hit buffers
+        self.movement_hit_buffer
+            .push(ColliderMgr::create_hit_buffer(
+                collider::MAX_COLLISION_COUNT,
+            ));
+        self.selection_hit.push(Hit {
+            is_colliding: false,
+            collider_i: usize::MAX,
+            position: f32::Vec2::ZERO,
+            delta: f32::Vec2::ZERO,
+            normal: f32::Vec2::ZERO,
+        });
+
+        // Create sprite
+        let sprite_i = sprite_mgr
+            .add_from_file(
+                "sprites/player01.png",
+                f32::Vec2::ZERO,
+                f32::Vec2 { x: 0.1, y: 0.1 },
+                texture_mgr,
+            )
+            .await;
+        self.sprite_i.push(Some(sprite_i));
+
+        // Create collider
+        let collider_i = collider_mgr.add_from_sprite(sprite_i, None, sprite_mgr);
+        self.collider_i.push(Some(collider_i));
+        collider_mgr.render_bbox[collider_i] = false;
+
+        // Set not active
+        self.set_active(index, false, sprite_mgr, collider_mgr);
+
+        index
     }
 
-    /// Spawns the first player unit at the position set in the currently active scene.
-    pub fn spawn(
+    pub fn len(&self) -> usize {
+        self.is_active.len()
+    }
+
+    pub async fn spawn(
         &mut self,
         scene_mgr: &SceneMgr,
         sprite_mgr: &mut SpriteMgr,
         collider_mgr: &mut ColliderMgr,
+        texture_mgr: &mut Texture2dMgr,
     ) {
-        // Only spawn unit index 0
-        let index = 0;
-
         if scene_mgr.active_scene_id == None || scene_mgr.active_objects.len() == 0 {
             return;
         }
 
-        // Search for position marked in scene and spawn there
-        for i in &scene_mgr.active_objects {
-            if scene_mgr.object_class[*i].as_ref().unwrap() == "Player" {
-                let position = scene_mgr.object_position[*i].unwrap();
-                sprite_mgr.position[self.sprite_i[index].unwrap()] = position;
-                self.set_active(index, true, sprite_mgr, collider_mgr);
-                break;
+        for scene_object_i in &scene_mgr.active_objects {
+            let object_class = scene_mgr.object_class[*scene_object_i].as_ref();
+            if object_class.unwrap() != "PlayerUnit" {
+                continue;
             }
+            let name = scene_mgr.object_name[*scene_object_i].as_ref().unwrap();
+
+            let team = match scene_mgr.get_object_property_string(*scene_object_i, "team") {
+                Some(team_str) => match team_str.as_str() {
+                    "Player" => PlayerTeam::Player,
+                    "Enemy" => PlayerTeam::Enemy,
+                    _ => panic!("Invalid value for property `team` in object `{:?}`", name),
+                },
+                None => panic!(
+                    "`team` property is required for PlayerUnit object `{:?}`",
+                    name
+                ),
+            };
+
+            let move_speed =
+                match scene_mgr.get_object_property_float(*scene_object_i, "move_speed") {
+                    Some(move_speed) => move_speed,
+                    None => panic!(
+                        "`move_speed` property is required for PlayerUnit object `{:?}`",
+                        name
+                    ),
+                };
+
+            let position = scene_mgr.object_position[*scene_object_i].unwrap();
+
+            let new_index = self
+                .add(move_speed, team, sprite_mgr, collider_mgr, texture_mgr)
+                .await;
+
+            sprite_mgr.position[self.sprite_i[new_index].unwrap()] = position;
+
+            // if new_index == 0 {
+            // self.set_active(new_index, true, sprite_mgr, collider_mgr);
+            // }
+            self.set_active(new_index, true, sprite_mgr, collider_mgr);
         }
     }
 
@@ -153,7 +209,7 @@ impl PlayerUnitMgr {
         let is_mouse_r_pressed = is_mouse_button_pressed(MouseButton::Right);
         let is_mouse_l_pressed = is_mouse_button_pressed(MouseButton::Left);
 
-        for i in 0..UNIT_COUNT {
+        for i in 0..self.len() {
             // Selection
             if !self.is_active[i] {
                 continue;
@@ -193,7 +249,7 @@ impl PlayerUnitMgr {
     }
 
     pub fn update(&mut self, dt: f32, sprite_mgr: &mut SpriteMgr, collider_mgr: &mut ColliderMgr) {
-        for i in 0..UNIT_COUNT {
+        for i in 0..self.len() {
             if !self.is_active[i] {
                 continue;
             }
@@ -278,7 +334,7 @@ impl PlayerUnitMgr {
     }
 
     pub fn render(&self, collider_mgr: &ColliderMgr) {
-        for i in 0..UNIT_COUNT {
+        for i in 0..self.len() {
             if !self.is_selected[i] || !self.is_active[i] {
                 continue;
             }
@@ -296,4 +352,10 @@ impl PlayerUnitMgr {
             );
         }
     }
+}
+
+#[derive(Eq, PartialEq)]
+pub enum PlayerTeam {
+    Player,
+    Enemy,
 }

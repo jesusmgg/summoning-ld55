@@ -38,7 +38,7 @@ impl GameMgr {
         let scene_mgr = SceneMgr::new();
         let diagnostics_mgr = DiagnosticsMgr::new();
 
-        let player_unit_mgr = PlayerUnitMgr::new(100.0);
+        let player_unit_mgr = PlayerUnitMgr::new();
         let wall_mgr = WallMgr::new();
 
         Self {
@@ -59,22 +59,17 @@ impl GameMgr {
     pub async fn init(&mut self) {
         self.diagnostics_mgr.init();
         self.scene_mgr.init(self.pc_assets_folder.clone()).await;
-
-        self.player_unit_mgr
-            .init(
-                &mut self.sprite_mgr,
-                &mut self.texture2d_mgr,
-                &mut self.collider_mgr,
-            )
-            .await;
     }
 
-    pub fn spawn(&mut self) {
-        self.player_unit_mgr.spawn(
-            &self.scene_mgr,
-            &mut self.sprite_mgr,
-            &mut self.collider_mgr,
-        );
+    pub async fn spawn(&mut self) {
+        self.player_unit_mgr
+            .spawn(
+                &self.scene_mgr,
+                &mut self.sprite_mgr,
+                &mut self.collider_mgr,
+                &mut self.texture2d_mgr,
+            )
+            .await;
 
         self.wall_mgr.spawn(&self.scene_mgr, &mut self.collider_mgr);
     }

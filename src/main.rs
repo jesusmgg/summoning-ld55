@@ -24,7 +24,7 @@ async fn main() {
     let scene_id = game_mgr
         .scene_mgr
         .load_scene(
-            "maps/future.tmx",
+            "maps/world01.tmx",
             &mut game_mgr.tile_mgr,
             &mut game_mgr.texture2d_mgr,
         )
@@ -37,7 +37,7 @@ async fn main() {
     // ####### Game scene setup end
     // ###########################################
 
-    game_mgr.spawn();
+    game_mgr.spawn().await;
 
     loop {
         game_mgr.input();
