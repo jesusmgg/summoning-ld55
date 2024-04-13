@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object name="PlayerUnit" type="PlayerUnit">
+  <properties>
+   <property name="move_speed" type="float" value="100"/>
+   <property name="start_active" type="bool" value="true"/>
+   <property name="team" value="Player"/>
+  </properties>
+  <point/>
+ </object>
+</template>
