@@ -235,8 +235,6 @@ impl PlayerUnitMgr {
                     collider_i,
                     &mut selection_hit,
                 );
-
-                println!("is selected {}", self.is_selected[i]);
             }
 
             // Movement
@@ -265,25 +263,12 @@ impl PlayerUnitMgr {
                 continue;
             }
 
-            let index_text = format!("Update unit index {}", i);
-            println!("{}", index_text);
-
-            draw_text(
-                index_text.as_str(),
-                0.0,
-                screen_height() - 84.0,
-                32.0,
-                color::WHITE,
-            );
-
             let sprite_i = self.sprite_i[i].unwrap();
             let position = sprite_mgr.position[sprite_i];
             let size = sprite_mgr.scaled_size(sprite_i);
 
             // Get movement vector
             let move_target = self.move_target[i].unwrap() - *size / 2.0;
-            println!("move target x:{} y:{}", move_target.x, move_target.y);
-            println!("position    x:{} y:{}", position.x, position.y);
 
             let distance = move_target - position;
             if distance.length_squared() < MOVE_DISTANCE_TOLERANCE {
@@ -300,8 +285,6 @@ impl PlayerUnitMgr {
             if translation.length_squared() > 0.0 {
                 self.update_movement(i, &translation, sprite_mgr, collider_mgr);
             }
-
-            println!("translation {}", translation);
 
             // Cleanup
             self.clear_input(i);
