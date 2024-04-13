@@ -439,6 +439,40 @@ impl SceneMgr {
 
         value
     }
+
+    pub fn get_object_property_bool(&self, index: usize, property_name: &str) -> Option<bool> {
+        let value: Option<bool> = match self.object_properties[index].as_ref() {
+            Some(property) => match property.get(property_name) {
+                Some(property_value) => match property_value {
+                    tiled::PropertyValue::BoolValue(value) => Some(*value),
+                    _ => {
+                        log::error(format!(
+                            "Property `{:?}` of object `{:?}` was requested as a bool and has another type",
+                            &property_name,
+                            &self.object_name[index]
+                        ));
+                        None
+                    }
+                },
+                None => {
+                    log::error(format!(
+                        "Property `{:?}` not found for object `{:?}`",
+                        &property_name, &self.object_name[index]
+                    ));
+                    None
+                }
+            },
+            None => {
+                log::error(format!(
+                    "Object `{:?}` has no properties",
+                    &self.object_name[index]
+                ));
+                None
+            }
+        };
+
+        value
+    }
 }
 
 fn create_tiled_cursor_loader(
