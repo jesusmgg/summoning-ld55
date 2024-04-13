@@ -1,0 +1,1 @@
+- Collision detection algorithms referenced from: https://github.com/noonat/intersect
