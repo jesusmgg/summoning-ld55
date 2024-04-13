@@ -6,7 +6,7 @@ use crate::engine::{
     tile::TileMgr,
 };
 
-use crate::game::{player::Player, wall::WallMgr};
+use crate::game::{player::PlayerUnitMgr, wall::WallMgr};
 
 use macroquad::{
     color, input::is_key_pressed, miniquad::window::quit, time::get_frame_time,
@@ -22,7 +22,7 @@ pub struct GameMgr {
     pub collider_mgr: ColliderMgr,
     pub diagnostics_mgr: DiagnosticsMgr,
 
-    pub player: Player,
+    pub player_unit_mgr: PlayerUnitMgr,
     pub wall_mgr: WallMgr,
 
     // TODO: consider an alternative to passing around clones of the `pc_assets_folder`.
@@ -38,7 +38,7 @@ impl GameMgr {
         let scene_mgr = SceneMgr::new();
         let diagnostics_mgr = DiagnosticsMgr::new();
 
-        let player = Player::new(100.0);
+        let player_unit_mgr = PlayerUnitMgr::new(100.0);
         let wall_mgr = WallMgr::new();
 
         Self {
@@ -49,7 +49,7 @@ impl GameMgr {
             scene_mgr,
             diagnostics_mgr,
 
-            player,
+            player_unit_mgr,
             wall_mgr,
 
             pc_assets_folder,
@@ -60,7 +60,7 @@ impl GameMgr {
         self.diagnostics_mgr.init();
         self.scene_mgr.init(self.pc_assets_folder.clone()).await;
 
-        self.player
+        self.player_unit_mgr
             .init(
                 &mut self.sprite_mgr,
                 &mut self.texture2d_mgr,
@@ -70,7 +70,7 @@ impl GameMgr {
     }
 
     pub fn spawn(&mut self) {
-        self.player.spawn(
+        self.player_unit_mgr.spawn(
             &self.scene_mgr,
             &mut self.sprite_mgr,
             &mut self.collider_mgr,
@@ -84,7 +84,7 @@ impl GameMgr {
             quit();
         }
 
-        self.player.input();
+        self.player_unit_mgr.input();
     }
 
     pub fn update(&mut self) {
@@ -92,7 +92,7 @@ impl GameMgr {
 
         self.texture2d_mgr.update();
 
-        self.player
+        self.player_unit_mgr
             .update(dt, &mut self.sprite_mgr, &mut self.collider_mgr);
     }
 
