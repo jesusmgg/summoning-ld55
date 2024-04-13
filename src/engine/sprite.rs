@@ -95,7 +95,7 @@ impl SpriteMgr {
     }
 
     pub fn scale(&self, index: usize) -> &f32::Vec2 {
-        &self.scale(index)
+        &self.scale[index]
     }
 
     pub fn scaled_size(&self, index: usize) -> &f32::Vec2 {
