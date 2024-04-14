@@ -1,9 +1,9 @@
 use std::mem;
 
 use macroquad::{
-    camera::{set_camera, set_default_camera, Camera2D},
+    camera::{set_camera, Camera2D},
     input::mouse_position,
-    math::{f32, Rect, Vec2},
+    math::{f32, Rect},
 };
 
 const MAX_CAMERA_COUNT: usize = 8;
