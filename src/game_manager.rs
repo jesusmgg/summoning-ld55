@@ -7,7 +7,9 @@ use crate::{
         sprite::{SpriteMgr, Texture2dMgr},
         tile::TileMgr,
     },
-    game::{selector_box::SelectorBox, summoning_circle::SummoningCircleMgr},
+    game::{
+        game_logic::GameLogic, selector_box::SelectorBox, summoning_circle::SummoningCircleMgr,
+    },
 };
 
 use crate::game::{player::PlayerUnitMgr, wall::WallMgr};
@@ -32,6 +34,8 @@ pub struct GameMgr {
     pub summoning_circle_mgr: SummoningCircleMgr,
     pub selector_box: SelectorBox,
 
+    pub game_logic: GameLogic,
+
     // TODO: consider an alternative to passing around clones of the `pc_assets_folder`.
     pub pc_assets_folder: Option<String>,
 }
@@ -51,6 +55,8 @@ impl GameMgr {
         let summoning_circle_mgr = SummoningCircleMgr::new();
         let selector_box = SelectorBox::new();
 
+        let game_logic = GameLogic::new();
+
         Self {
             texture2d_mgr,
             tile_mgr,
@@ -64,6 +70,8 @@ impl GameMgr {
             wall_mgr,
             summoning_circle_mgr,
             selector_box,
+
+            game_logic,
 
             pc_assets_folder,
         }
