@@ -4,12 +4,12 @@ use crate::{
     engine::{camera::camera::CameraMgr, scene::SceneMgr},
 };
 use macroquad::math::f32;
-use macroquad::text::draw_text;
 use macroquad::{
     color,
-    input::{is_key_down, is_mouse_button_pressed, mouse_position, KeyCode, MouseButton},
-    window::screen_height,
+    input::{is_key_down, is_mouse_button_pressed, KeyCode, MouseButton},
 };
+
+use super::selector_box::{self, SelectorBox};
 
 const MAX_UNIT_COUNT: usize = 1024;
 const MOVE_DISTANCE_TOLERANCE: f32 = 1.0;
@@ -32,6 +32,8 @@ pub struct PlayerUnitMgr {
     move_target: Vec<Option<f32::Vec2>>,
 
     mouse_pos: f32::Vec2,
+
+    collision_ignored_i: Vec<usize>,
 }
 
 impl PlayerUnitMgr {
@@ -53,6 +55,8 @@ impl PlayerUnitMgr {
 
         let mouse_pos = f32::Vec2::ZERO;
 
+        let collision_ignored_i = Vec::with_capacity(32);
+
         Self {
             move_speed,
             input_move,
@@ -69,7 +73,13 @@ impl PlayerUnitMgr {
             move_target,
 
             mouse_pos,
+
+            collision_ignored_i,
         }
+    }
+
+    pub fn init(&mut self, selector_box: &SelectorBox) {
+        self.collision_ignored_i.push(selector_box.collider_i());
     }
 
     pub async fn add(
@@ -205,13 +215,15 @@ impl PlayerUnitMgr {
     ) {
         self.is_active[index] = is_active;
         sprite_mgr.is_active[self.sprite_i[index].unwrap()] = is_active;
+
+        let collider_i = self.collider_i[index].unwrap();
         let position = sprite_mgr.position[index];
-        collider_mgr.set_position(index, position.x, position.y);
-        collider_mgr.set_active(self.collider_i[index].unwrap(), is_active);
+        collider_mgr.set_position(collider_i, position.x, position.y);
+        collider_mgr.set_active(collider_i, is_active);
     }
 
     pub fn input(&mut self, collider_mgr: &ColliderMgr, camera_mgr: &CameraMgr) {
-        self.mouse_pos = camera_mgr.mouse_world_position();
+        self.mouse_pos = camera_mgr.get_mouse_world_position();
 
         let is_mouse_r_pressed = is_mouse_button_pressed(MouseButton::Right);
         let is_mouse_l_pressed = is_mouse_button_pressed(MouseButton::Left);
@@ -234,7 +246,7 @@ impl PlayerUnitMgr {
                     &bbox_center,
                     collider_i,
                     &mut selection_hit,
-                );
+                ) || (is_key_down(KeyCode::LeftShift) && self.is_selected[i]);
             }
 
             // Movement
@@ -253,12 +265,31 @@ impl PlayerUnitMgr {
         self.input_move[index].y = 0.0;
     }
 
-    pub fn update(&mut self, dt: f32, sprite_mgr: &mut SpriteMgr, collider_mgr: &mut ColliderMgr) {
+    pub fn update(
+        &mut self,
+        dt: f32,
+        selector_box: &SelectorBox,
+        sprite_mgr: &mut SpriteMgr,
+        collider_mgr: &mut ColliderMgr,
+    ) {
         for i in 0..self.len() {
             if !self.is_active[i] {
                 continue;
             }
 
+            // Selection (with box)
+            let collider_i = self.collider_i[i].unwrap();
+            if selector_box.is_dragging() {
+                if !is_key_down(KeyCode::LeftShift) {
+                    self.is_selected[i] = false;
+                }
+                if !self.is_selected[i] && selector_box.selected_collider_i().contains(&collider_i)
+                {
+                    self.is_selected[i] = true;
+                }
+            }
+
+            // Movement
             if self.move_target[i] == None {
                 continue;
             }
@@ -308,6 +339,7 @@ impl PlayerUnitMgr {
             collider_i,
             &translation,
             &mut self.movement_hit_buffer[index],
+            Some(&self.collision_ignored_i),
         );
 
         if mov_hits > 0 {
@@ -341,6 +373,10 @@ impl PlayerUnitMgr {
                 color::YELLOW,
             );
         }
+    }
+
+    pub fn is_active(&self, index: usize) -> bool {
+        self.is_active[index]
     }
 }
 

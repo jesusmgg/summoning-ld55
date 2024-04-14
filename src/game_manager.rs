@@ -1,10 +1,13 @@
-use crate::engine::{
-    camera::camera::CameraMgr,
-    collision::collider::ColliderMgr,
-    diagnostics::DiagnosticsMgr,
-    scene::SceneMgr,
-    sprite::{SpriteMgr, Texture2dMgr},
-    tile::TileMgr,
+use crate::{
+    engine::{
+        camera::camera::CameraMgr,
+        collision::collider::ColliderMgr,
+        diagnostics::DiagnosticsMgr,
+        scene::SceneMgr,
+        sprite::{SpriteMgr, Texture2dMgr},
+        tile::TileMgr,
+    },
+    game::selector_box::SelectorBox,
 };
 
 use crate::game::{player::PlayerUnitMgr, wall::WallMgr};
@@ -26,6 +29,7 @@ pub struct GameMgr {
 
     pub player_unit_mgr: PlayerUnitMgr,
     pub wall_mgr: WallMgr,
+    pub selector_box: SelectorBox,
 
     // TODO: consider an alternative to passing around clones of the `pc_assets_folder`.
     pub pc_assets_folder: Option<String>,
@@ -35,14 +39,15 @@ impl GameMgr {
     pub fn new(pc_assets_folder: Option<String>) -> Self {
         let texture2d_mgr = Texture2dMgr::new();
         let tile_mgr = TileMgr::new();
+        let scene_mgr = SceneMgr::new();
         let sprite_mgr = SpriteMgr::new();
         let collider_mgr = ColliderMgr::new();
-        let scene_mgr = SceneMgr::new();
         let camera_mgr = CameraMgr::new();
         let diagnostics_mgr = DiagnosticsMgr::new();
 
         let player_unit_mgr = PlayerUnitMgr::new();
         let wall_mgr = WallMgr::new();
+        let selector_box = SelectorBox::new();
 
         Self {
             texture2d_mgr,
@@ -55,6 +60,7 @@ impl GameMgr {
 
             player_unit_mgr,
             wall_mgr,
+            selector_box,
 
             pc_assets_folder,
         }
@@ -64,6 +70,9 @@ impl GameMgr {
         self.diagnostics_mgr.init();
         self.scene_mgr.init(self.pc_assets_folder.clone()).await;
         self.camera_mgr.init();
+
+        self.selector_box.init(&mut self.collider_mgr);
+        self.player_unit_mgr.init(&self.selector_box);
     }
 
     pub async fn spawn(&mut self) {
@@ -84,6 +93,9 @@ impl GameMgr {
             quit();
         }
 
+        self.selector_box
+            .input(&self.camera_mgr, &mut self.collider_mgr);
+
         self.player_unit_mgr
             .input(&self.collider_mgr, &self.camera_mgr);
     }
@@ -93,8 +105,13 @@ impl GameMgr {
 
         self.texture2d_mgr.update();
 
-        self.player_unit_mgr
-            .update(dt, &mut self.sprite_mgr, &mut self.collider_mgr);
+        self.selector_box.update(&self.collider_mgr);
+        self.player_unit_mgr.update(
+            dt,
+            &self.selector_box,
+            &mut self.sprite_mgr,
+            &mut self.collider_mgr,
+        );
     }
 
     pub fn render(&self) {
@@ -103,7 +120,10 @@ impl GameMgr {
         self.scene_mgr.render(&self.texture2d_mgr);
         self.sprite_mgr.render(&self.texture2d_mgr);
         self.collider_mgr.render();
+
+        self.selector_box.render(&self.collider_mgr);
         self.player_unit_mgr.render(&self.collider_mgr);
+
         self.diagnostics_mgr.render();
     }
 }
