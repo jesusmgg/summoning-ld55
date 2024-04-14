@@ -4,6 +4,8 @@ use macroquad::{
     texture::{draw_texture_ex, load_texture, DrawTextureParams, Texture2D},
 };
 
+use super::logging::log;
+
 const MAX_SPRITE_COUNT: usize = 1024;
 const MAX_TEXTURE_COUNT: usize = 256;
 
@@ -153,6 +155,7 @@ impl Texture2dMgr {
     }
 
     pub async fn add_from_file(&mut self, file_path: &str) -> usize {
+        log::debug(format!("Loading texture: {file_path}"));
         let texture = load_texture(file_path).await.unwrap();
         texture.set_filter(macroquad::texture::FilterMode::Nearest);
 
