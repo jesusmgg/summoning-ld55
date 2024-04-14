@@ -21,6 +21,7 @@ async fn main() {
     // ###########################################
     // ####### Game scene setup start
     // ###########################################
+    // TODO: move everything related to game setup away from the main function.
     let scene_id = game_mgr
         .scene_mgr
         .load_scene(
