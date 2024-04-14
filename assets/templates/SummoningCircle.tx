@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object name="SummoningCircle" type="SummoningCircle">
+  <properties>
+   <property name="start_active" type="bool" value="true"/>
+  </properties>
+  <point/>
+ </object>
+</template>

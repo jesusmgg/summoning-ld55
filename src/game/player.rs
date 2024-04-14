@@ -9,7 +9,7 @@ use macroquad::{
     input::{is_key_down, is_mouse_button_pressed, KeyCode, MouseButton},
 };
 
-use super::selector_box::{self, SelectorBox};
+use super::{selector_box::SelectorBox, summoning_circle::SummoningCircleMgr};
 
 const MAX_UNIT_COUNT: usize = 1024;
 const MOVE_DISTANCE_TOLERANCE: f32 = 1.0;
@@ -18,6 +18,7 @@ pub struct PlayerUnitMgr {
     move_speed: Vec<f32>,
     /// Current movement input
     input_move: Vec<f32::Vec2>,
+    anchor_offset: Vec<f32::Vec2>,
     is_selected: Vec<bool>,
     is_active: Vec<bool>,
     team: Vec<PlayerTeam>,
@@ -40,6 +41,7 @@ impl PlayerUnitMgr {
     pub fn new() -> Self {
         let move_speed = Vec::with_capacity(MAX_UNIT_COUNT);
         let input_move = Vec::with_capacity(MAX_UNIT_COUNT);
+        let anchor_offset = Vec::with_capacity(MAX_UNIT_COUNT);
         let is_selected = Vec::with_capacity(MAX_UNIT_COUNT);
         let is_active = Vec::with_capacity(MAX_UNIT_COUNT);
 
@@ -60,6 +62,7 @@ impl PlayerUnitMgr {
         Self {
             move_speed,
             input_move,
+            anchor_offset,
             is_selected,
             is_active,
             team,
@@ -76,10 +79,6 @@ impl PlayerUnitMgr {
 
             collision_ignored_i,
         }
-    }
-
-    pub fn init(&mut self, selector_box: &SelectorBox) {
-        self.collision_ignored_i.push(selector_box.collider_i());
     }
 
     pub async fn add(
@@ -131,6 +130,10 @@ impl PlayerUnitMgr {
             .await;
         self.sprite_i.push(Some(sprite_i));
 
+        let scaled_size = sprite_mgr.scaled_size(sprite_i);
+        let anchor_offset = f32::Vec2::new(0.0, scaled_size.y / 2.0 - 5.0);
+        self.anchor_offset.push(anchor_offset);
+
         // Create collider
         let collider_i = collider_mgr.add_from_sprite(sprite_i, None, sprite_mgr);
         self.collider_i.push(Some(collider_i));
@@ -152,11 +155,26 @@ impl PlayerUnitMgr {
         sprite_mgr: &mut SpriteMgr,
         collider_mgr: &mut ColliderMgr,
         texture_mgr: &mut Texture2dMgr,
+        selector_box: &SelectorBox,
+        summoning_circle_mgr: &SummoningCircleMgr,
     ) {
         if scene_mgr.active_scene_id == None || scene_mgr.active_objects.len() == 0 {
             return;
         }
 
+        // Regenerate collision ignored list
+        self.collision_ignored_i.clear();
+        self.collision_ignored_i.push(selector_box.collider_i());
+
+        for circle_i in 0..summoning_circle_mgr.len() {
+            if !summoning_circle_mgr.is_active(circle_i) {
+                continue;
+            }
+            self.collision_ignored_i
+                .push(summoning_circle_mgr.collider_i(circle_i));
+        }
+
+        // Spawn from scene
         for scene_object_i in &scene_mgr.active_objects {
             let object_class = scene_mgr.object_class[*scene_object_i].as_ref();
             if object_class.unwrap() != "PlayerUnit" {
@@ -200,7 +218,7 @@ impl PlayerUnitMgr {
                 .add(move_speed, team, sprite_mgr, collider_mgr, texture_mgr)
                 .await;
 
-            sprite_mgr.position[self.sprite_i[new_index].unwrap()] = position;
+            sprite_mgr.set_position(self.sprite_i[new_index].unwrap(), position);
 
             self.set_active(new_index, start_active, sprite_mgr, collider_mgr);
         }
@@ -214,10 +232,12 @@ impl PlayerUnitMgr {
         collider_mgr: &mut ColliderMgr,
     ) {
         self.is_active[index] = is_active;
-        sprite_mgr.is_active[self.sprite_i[index].unwrap()] = is_active;
+        sprite_mgr.set_active(self.sprite_i[index].unwrap(), is_active);
 
         let collider_i = self.collider_i[index].unwrap();
-        let position = sprite_mgr.position[index];
+        let sprite_i = self.sprite_i[index].unwrap();
+
+        let position = sprite_mgr.position(sprite_i);
         collider_mgr.set_position(collider_i, position.x, position.y);
         collider_mgr.set_active(collider_i, is_active);
     }
@@ -295,11 +315,11 @@ impl PlayerUnitMgr {
             }
 
             let sprite_i = self.sprite_i[i].unwrap();
-            let position = sprite_mgr.position[sprite_i];
+            let position = sprite_mgr.position(sprite_i);
             let size = sprite_mgr.scaled_size(sprite_i);
 
             // Get movement vector
-            let move_target = self.move_target[i].unwrap() - *size / 2.0;
+            let move_target = self.move_target[i].unwrap() - *size / 2.0 - self.anchor_offset[i];
 
             let distance = move_target - position;
             if distance.length_squared() < MOVE_DISTANCE_TOLERANCE {
@@ -332,7 +352,7 @@ impl PlayerUnitMgr {
         let sprite_i = self.sprite_i[index].unwrap();
         let collider_i = self.collider_i[index].unwrap();
 
-        let current_position = sprite_mgr.position[sprite_i];
+        let current_position = sprite_mgr.position(sprite_i);
         let mut new_position = current_position + *translation;
 
         let mov_hits = collider_mgr.intersect_bbox(
@@ -341,7 +361,6 @@ impl PlayerUnitMgr {
             &mut self.movement_hit_buffer[index],
             Some(&self.collision_ignored_i),
         );
-
         if mov_hits > 0 {
             for i in 0..mov_hits {
                 let hit = &self.movement_hit_buffer[index][i];
@@ -350,8 +369,8 @@ impl PlayerUnitMgr {
                 }
             }
         }
-        sprite_mgr.position[sprite_i].x = new_position.x;
-        sprite_mgr.position[sprite_i].y = new_position.y;
+
+        sprite_mgr.set_position(sprite_i, new_position);
         collider_mgr.set_position(collider_i, new_position.x, new_position.y);
     }
 

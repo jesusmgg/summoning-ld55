@@ -7,7 +7,7 @@ use crate::{
         sprite::{SpriteMgr, Texture2dMgr},
         tile::TileMgr,
     },
-    game::selector_box::SelectorBox,
+    game::{selector_box::SelectorBox, summoning_circle::SummoningCircleMgr},
 };
 
 use crate::game::{player::PlayerUnitMgr, wall::WallMgr};
@@ -29,6 +29,7 @@ pub struct GameMgr {
 
     pub player_unit_mgr: PlayerUnitMgr,
     pub wall_mgr: WallMgr,
+    pub summoning_circle_mgr: SummoningCircleMgr,
     pub selector_box: SelectorBox,
 
     // TODO: consider an alternative to passing around clones of the `pc_assets_folder`.
@@ -47,6 +48,7 @@ impl GameMgr {
 
         let player_unit_mgr = PlayerUnitMgr::new();
         let wall_mgr = WallMgr::new();
+        let summoning_circle_mgr = SummoningCircleMgr::new();
         let selector_box = SelectorBox::new();
 
         Self {
@@ -60,6 +62,7 @@ impl GameMgr {
 
             player_unit_mgr,
             wall_mgr,
+            summoning_circle_mgr,
             selector_box,
 
             pc_assets_folder,
@@ -72,20 +75,28 @@ impl GameMgr {
         self.camera_mgr.init();
 
         self.selector_box.init(&mut self.collider_mgr);
-        self.player_unit_mgr.init(&self.selector_box);
     }
 
     pub async fn spawn(&mut self) {
+        self.summoning_circle_mgr
+            .spawn(
+                &self.scene_mgr,
+                &mut self.collider_mgr,
+                &mut self.sprite_mgr,
+                &mut self.texture2d_mgr,
+            )
+            .await;
+        self.wall_mgr.spawn(&self.scene_mgr, &mut self.collider_mgr);
         self.player_unit_mgr
             .spawn(
                 &self.scene_mgr,
                 &mut self.sprite_mgr,
                 &mut self.collider_mgr,
                 &mut self.texture2d_mgr,
+                &self.selector_box,
+                &self.summoning_circle_mgr,
             )
             .await;
-
-        self.wall_mgr.spawn(&self.scene_mgr, &mut self.collider_mgr);
     }
 
     pub fn input(&mut self) {
