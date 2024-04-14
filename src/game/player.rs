@@ -13,6 +13,7 @@ use super::{selector_box::SelectorBox, summoning_circle::SummoningCircleMgr};
 
 const MAX_UNIT_COUNT: usize = 1024;
 const MOVE_DISTANCE_TOLERANCE: f32 = 1.0;
+const COLLISION_IGNORE_LIST_SIZE: usize = 1024;
 
 pub struct PlayerUnitMgr {
     move_speed: Vec<f32>,
@@ -57,7 +58,7 @@ impl PlayerUnitMgr {
 
         let mouse_pos = f32::Vec2::ZERO;
 
-        let collision_ignored_i = Vec::with_capacity(32);
+        let collision_ignored_i = Vec::with_capacity(COLLISION_IGNORE_LIST_SIZE);
 
         Self {
             move_speed,
