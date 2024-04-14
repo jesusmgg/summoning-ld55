@@ -9,10 +9,10 @@ const MAX_TEXTURE_COUNT: usize = 256;
 
 /// Holds references to sprite instances in the game.
 pub struct SpriteMgr {
-    pub position: Vec<f32::Vec2>,
+    position: Vec<f32::Vec2>,
     size: Vec<f32::Vec2>,
     scale: Vec<f32::Vec2>,
-    pub is_active: Vec<bool>,
+    is_active: Vec<bool>,
 
     // References
     pub texture_i: Vec<usize>,
@@ -74,9 +74,7 @@ impl SpriteMgr {
         let texture_i = texture_mgr.add_from_file(file_path).await;
         let size = texture_mgr.texture[texture_i].size();
 
-        self.add(texture_i, position, size, scale);
-
-        self.len() - 1
+        self.add(texture_i, position, size, scale)
     }
 
     pub fn len(&self) -> usize {
@@ -113,12 +111,24 @@ impl SpriteMgr {
         }
     }
 
+    pub fn position(&self, index: usize) -> f32::Vec2 {
+        self.position[index]
+    }
+
     pub fn set_position(&mut self, index: usize, position: f32::Vec2) {
         self.position[index] = position;
     }
 
     pub fn translate(&mut self, index: usize, delta: f32::Vec2) {
         self.set_position(index, self.position[index] + delta);
+    }
+
+    pub fn set_active(&mut self, index: usize, is_active: bool) {
+        self.is_active[index] = is_active
+    }
+
+    pub fn is_active(&self, index: usize) -> bool {
+        self.is_active[index]
     }
 }
 

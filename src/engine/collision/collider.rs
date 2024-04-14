@@ -67,7 +67,7 @@ impl ColliderMgr {
 
     /// Creates a new `Rect` with the sprite's position and size that can be used as a bounding box.
     pub fn create_rect_for_sprite(sprite_i: usize, sprite_mgr: &mut SpriteMgr) -> Rect {
-        let position = &sprite_mgr.position[sprite_i];
+        let position = &sprite_mgr.position(sprite_i);
         let size = sprite_mgr.scaled_size(sprite_i);
 
         Rect::new(position.x, position.y, size.x, size.y)
