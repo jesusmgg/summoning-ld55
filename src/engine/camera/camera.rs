@@ -70,7 +70,7 @@ impl CameraMgr {
     }
 
     /// Get mouse world position using current camera
-    pub fn mouse_world_position(&self) -> f32::Vec2 {
+    pub fn get_mouse_world_position(&self) -> f32::Vec2 {
         let mut mouse_screen_pos: f32::Vec2 = unsafe { mem::MaybeUninit::zeroed().assume_init() };
         (mouse_screen_pos.x, mouse_screen_pos.y) = mouse_position();
 

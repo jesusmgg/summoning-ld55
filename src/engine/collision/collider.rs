@@ -164,6 +164,7 @@ impl ColliderMgr {
         index: usize,
         translation: &f32::Vec2,
         hit_buffer: &mut Vec<Hit>,
+        ignore_list: Option<&Vec<usize>>,
     ) -> usize {
         let mut collision_count: usize = 0;
 
@@ -175,6 +176,15 @@ impl ColliderMgr {
         for i in 0..self.len() {
             if i == index || !self.is_active(i) {
                 continue;
+            }
+
+            match ignore_list {
+                Some(list) => {
+                    if list.contains(&i) {
+                        continue;
+                    }
+                }
+                None => {}
             }
 
             let bbox = self.bbox[i];
