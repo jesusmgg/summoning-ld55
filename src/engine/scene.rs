@@ -172,6 +172,8 @@ impl SceneMgr {
 
         self.tile_id.push(None);
         self.tileset_id.push(None);
+        self.tile_position.push(None);
+        self.tile_size.push(None);
 
         self.len() - 1
     }
@@ -319,6 +321,11 @@ impl SceneMgr {
     /// - Loads the `tile_renderer_cache` with the tiles from selected scene in the order they
     ///   should be rendered at.
     pub fn set_active_scene(&mut self, scene_id: Option<usize>, tile_mgr: &TileMgr) {
+        log::debug(format!(
+            "Activating scene with id `{:?}`",
+            scene_id.unwrap()
+        ));
+
         self.active_scene_id = scene_id;
         let scene_id = match scene_id {
             Some(id) => id,
