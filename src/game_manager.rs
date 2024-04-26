@@ -190,8 +190,9 @@ impl GameMgr {
         self.selector_box.render(&self.collider_mgr);
         self.player_unit_mgr.render(&self.collider_mgr);
 
-        self.diagnostics_mgr.render();
         self.loading_screen
             .render(&self.scene_mgr, &self.camera_mgr);
+
+        self.diagnostics_mgr.render(&self.camera_mgr);
     }
 }
