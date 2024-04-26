@@ -8,7 +8,8 @@ use crate::{
         tile::TileMgr,
     },
     game::{
-        game_logic::GameLogic, selector_box::SelectorBox, summoning_circle::SummoningCircleMgr,
+        game_logic::GameLogic, loading_screen::LoadingScreen, selector_box::SelectorBox,
+        summoning_circle::SummoningCircleMgr,
     },
 };
 
@@ -34,6 +35,8 @@ pub struct GameMgr {
     pub summoning_circle_mgr: SummoningCircleMgr,
     pub selector_box: SelectorBox,
 
+    pub loading_screen: LoadingScreen,
+
     pub game_logic: GameLogic,
 
     // TODO: consider an alternative to passing around clones of the `pc_assets_folder`.
@@ -55,6 +58,8 @@ impl GameMgr {
         let summoning_circle_mgr = SummoningCircleMgr::new();
         let selector_box = SelectorBox::new();
 
+        let loading_screen = LoadingScreen::new();
+
         let game_logic = GameLogic::new();
 
         Self {
@@ -70,6 +75,8 @@ impl GameMgr {
             wall_mgr,
             summoning_circle_mgr,
             selector_box,
+
+            loading_screen,
 
             game_logic,
 
@@ -184,5 +191,7 @@ impl GameMgr {
         self.player_unit_mgr.render(&self.collider_mgr);
 
         self.diagnostics_mgr.render();
+        self.loading_screen
+            .render(&self.scene_mgr, &self.camera_mgr);
     }
 }
