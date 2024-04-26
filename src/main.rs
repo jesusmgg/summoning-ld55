@@ -16,31 +16,13 @@ async fn main() {
     let pc_assets_folder = file::set_pc_assets_folder("assets");
 
     let mut game_mgr = GameMgr::new(pc_assets_folder);
+
     game_mgr.init().await;
 
-    // ###########################################
-    // ####### Game scene setup start
-    // ###########################################
-    // TODO: move everything related to game setup away from the main function.
-    let scene_id = game_mgr
-        .scene_mgr
-        .load_scene(
-            "maps/world01.tmx",
-            &mut game_mgr.tile_mgr,
-            &mut game_mgr.texture2d_mgr,
-        )
-        .await;
-
-    game_mgr
-        .scene_mgr
-        .set_active_scene(Some(scene_id), &game_mgr.tile_mgr);
-    // ###########################################
-    // ####### Game scene setup end
-    // ###########################################
-
-    game_mgr.spawn().await;
-
     loop {
+        game_mgr.despawn();
+        game_mgr.spawn().await;
+
         game_mgr.input();
         game_mgr.update();
         game_mgr.render();

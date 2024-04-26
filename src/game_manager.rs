@@ -83,9 +83,22 @@ impl GameMgr {
         self.camera_mgr.init();
 
         self.selector_box.init(&mut self.collider_mgr);
+
+        self.game_logic
+            .init(
+                &mut self.scene_mgr,
+                &mut self.tile_mgr,
+                &mut self.texture2d_mgr,
+            )
+            .await;
     }
 
     pub async fn spawn(&mut self) {
+        if !self.scene_mgr.has_pending_spawn() {
+            return;
+        }
+
+        self.selector_box.spawn(&mut self.collider_mgr);
         self.summoning_circle_mgr
             .spawn(
                 &self.scene_mgr,
@@ -105,10 +118,34 @@ impl GameMgr {
                 &self.summoning_circle_mgr,
             )
             .await;
+
+        self.scene_mgr.spawn();
+    }
+
+    pub fn despawn(&mut self) {
+        if !self.scene_mgr.has_pending_despawn() {
+            return;
+        }
+
+        self.selector_box.despawn(&mut self.collider_mgr);
+        self.summoning_circle_mgr.despawn(
+            &self.scene_mgr,
+            &mut self.collider_mgr,
+            &mut self.sprite_mgr,
+        );
+        self.wall_mgr
+            .despawn(&self.scene_mgr, &mut self.collider_mgr);
+        self.player_unit_mgr.despawn(
+            &self.scene_mgr,
+            &mut self.collider_mgr,
+            &mut self.sprite_mgr,
+        );
+
+        self.scene_mgr.despawn();
     }
 
     pub fn input(&mut self) {
-        if is_key_pressed(macroquad::prelude::KeyCode::Q) {
+        if is_key_pressed(macroquad::input::KeyCode::Q) {
             quit();
         }
 
@@ -117,6 +154,9 @@ impl GameMgr {
 
         self.player_unit_mgr
             .input(&self.collider_mgr, &self.camera_mgr);
+
+        self.game_logic
+            .input(&mut self.scene_mgr, &mut self.tile_mgr);
     }
 
     pub fn update(&mut self) {

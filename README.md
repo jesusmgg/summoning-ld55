@@ -19,6 +19,9 @@ Runs only once after initial instantiation.
 ### spawn
 Runs at scene activation. Initialization logic that should be repeated after a new scene is activated should take place here. For example, the `Player` system activating its sprite at the position set in the scene.
 
+### despawn
+`TODO`
+
 ### input
 Runs each frame.
 

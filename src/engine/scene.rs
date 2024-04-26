@@ -9,7 +9,7 @@ use super::{sprite::Texture2dMgr, tile::TileMgr};
 
 const MAX_SCENE_COUNT: usize = 32;
 const MAX_TILE_COUNT: usize = 32768;
-const TILE_RENDERER_CACHE_SIZE: usize = 4096;
+const TILE_RENDERER_CACHE_SIZE: usize = 8192;
 
 /// Loads the game scenes using Tiled.
 /// The scene format is comprised of tile layers and object layers.
@@ -50,6 +50,9 @@ pub struct SceneMgr {
     pc_assets_folder: Option<String>,
 
     // Active scene
+    has_pending_spawn: bool,
+    has_pending_despawn: bool,
+    pub objects_to_despawn: Vec<usize>,
     pub active_scene_id: Option<usize>,
     /// Keeps active object indices
     pub active_objects: Vec<usize>,
@@ -78,6 +81,9 @@ impl SceneMgr {
 
         let pc_assets_folder = None;
 
+        let has_pending_spawn = false;
+        let has_pending_despawn = false;
+        let objects_to_despawn = Vec::with_capacity(TILE_RENDERER_CACHE_SIZE);
         let active_scene_id = None;
         let active_objects = Vec::with_capacity(TILE_RENDERER_CACHE_SIZE);
         let tile_renderer_cache = Vec::with_capacity(TILE_RENDERER_CACHE_SIZE);
@@ -105,6 +111,9 @@ impl SceneMgr {
             loader,
             pc_assets_folder,
 
+            has_pending_spawn,
+            has_pending_despawn,
+            objects_to_despawn,
             active_scene_id,
             tile_renderer_cache,
             active_objects,
@@ -332,6 +341,9 @@ impl SceneMgr {
             None => return,
         };
 
+        self.objects_to_despawn = self.active_objects.to_vec();
+        self.has_pending_despawn = true;
+
         self.tile_renderer_cache.clear();
         self.active_objects.clear();
 
@@ -370,6 +382,29 @@ impl SceneMgr {
                 _ => continue,
             }
         }
+
+        self.has_pending_spawn = true;
+    }
+
+    pub fn spawn(&mut self) {
+        self.has_pending_spawn = false;
+    }
+
+    pub fn despawn(&mut self) {
+        if !self.has_pending_despawn {
+            return;
+        }
+
+        self.objects_to_despawn.clear();
+        self.has_pending_despawn = false;
+    }
+
+    pub fn has_pending_spawn(&self) -> bool {
+        self.has_pending_spawn
+    }
+
+    pub fn has_pending_despawn(&self) -> bool {
+        self.has_pending_despawn
     }
 
     pub fn render(&self, texture_mgr: &Texture2dMgr) {

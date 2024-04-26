@@ -11,7 +11,7 @@ const MAX_OBJECTS: usize = 512;
 pub struct SummoningCircleMgr {
     is_active: Vec<bool>,
 
-    scene_i: Vec<usize>,
+    scene_object_i: Vec<usize>,
     collider_i: Vec<usize>,
     sprite_i: Vec<usize>,
 }
@@ -22,16 +22,16 @@ impl SummoningCircleMgr {
         Self {
             is_active: Vec::with_capacity(MAX_OBJECTS),
 
-            scene_i: Vec::with_capacity(MAX_OBJECTS),
+            scene_object_i: Vec::with_capacity(MAX_OBJECTS),
             collider_i: Vec::with_capacity(MAX_OBJECTS),
             sprite_i: Vec::with_capacity(MAX_OBJECTS),
         }
     }
 
-    pub fn add(&mut self, sprite_i: usize, collider_i: usize, scene_i: usize) -> usize {
+    pub fn add(&mut self, sprite_i: usize, collider_i: usize, scene_object_i: usize) -> usize {
         self.is_active.push(false);
 
-        self.scene_i.push(scene_i);
+        self.scene_object_i.push(scene_object_i);
         self.collider_i.push(collider_i);
         self.sprite_i.push(sprite_i);
 
@@ -41,7 +41,7 @@ impl SummoningCircleMgr {
     pub async fn add_from_scene_object(
         &mut self,
         position: f32::Vec2,
-        scene_i: usize,
+        scene_object_i: usize,
         collider_mgr: &mut ColliderMgr,
         sprite_mgr: &mut SpriteMgr,
         texture_mgr: &mut Texture2dMgr,
@@ -60,7 +60,7 @@ impl SummoningCircleMgr {
         let collider_i = collider_mgr.add_from_sprite(sprite_i, None, sprite_mgr);
         collider_mgr.render_bbox[collider_i] = false;
 
-        self.add(sprite_i, collider_i, scene_i)
+        self.add(sprite_i, collider_i, scene_object_i)
     }
 
     pub fn len(&self) -> usize {
@@ -90,22 +90,22 @@ impl SummoningCircleMgr {
             return;
         }
 
-        'scene_iter: for scene_i in &scene_mgr.active_objects {
-            if scene_mgr.object_class[*scene_i].as_ref().unwrap() == "SummoningCircle" {
+        'scene_iter: for scene_object_i in &scene_mgr.active_objects {
+            if scene_mgr.object_class[*scene_object_i].as_ref().unwrap() == "SummoningCircle" {
                 // Existing in manager, activate it
                 for index in 0..self.len() {
-                    if self.scene_i[index] == *scene_i {
+                    if self.scene_object_i[index] == *scene_object_i {
                         self.set_active(index, true, collider_mgr, sprite_mgr);
                         continue 'scene_iter;
                     }
                 }
 
                 // New object, create it
-                let position = scene_mgr.object_position[*scene_i].unwrap();
+                let position = scene_mgr.object_position[*scene_object_i].unwrap();
                 let new_index = self
                     .add_from_scene_object(
                         position,
-                        *scene_i,
+                        *scene_object_i,
                         collider_mgr,
                         sprite_mgr,
                         texture_mgr,
@@ -116,9 +116,21 @@ impl SummoningCircleMgr {
         }
     }
 
-    pub fn despawn(&mut self, collider_mgr: &mut ColliderMgr, sprite_mgr: &mut SpriteMgr) {
-        for i in 0..self.len() {
-            self.set_active(i, false, collider_mgr, sprite_mgr);
+    pub fn despawn(
+        &mut self,
+        scene_mgr: &SceneMgr,
+        collider_mgr: &mut ColliderMgr,
+        sprite_mgr: &mut SpriteMgr,
+    ) {
+        'scene_iter: for scene_object_i in &scene_mgr.objects_to_despawn {
+            if scene_mgr.object_class[*scene_object_i].as_ref().unwrap() == "SummoningCircle" {
+                for index in 0..self.len() {
+                    if self.scene_object_i[index] == *scene_object_i && self.is_active(index) {
+                        self.set_active(index, false, collider_mgr, sprite_mgr);
+                        continue 'scene_iter;
+                    }
+                }
+            }
         }
     }
 

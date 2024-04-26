@@ -96,6 +96,14 @@ impl SelectorBox {
         macroquad::shapes::draw_rectangle_lines(bbox.x, bbox.y, bbox.w, bbox.h, 4.0, color::YELLOW);
     }
 
+    pub fn spawn(&mut self, collider_mgr: &mut ColliderMgr) {
+        self.set_active(true, collider_mgr);
+    }
+
+    pub fn despawn(&mut self, collider_mgr: &mut ColliderMgr) {
+        self.set_active(false, collider_mgr);
+    }
+
     pub fn set_active(&mut self, is_active: bool, collider_mgr: &mut ColliderMgr) {
         self.is_active = is_active;
         collider_mgr.set_active(self.collider_i.unwrap(), is_active);

@@ -26,6 +26,7 @@ pub struct PlayerUnitMgr {
 
     collider_i: Vec<Option<usize>>,
     sprite_i: Vec<Option<usize>>,
+    scene_object_i: Vec<usize>,
 
     /// Collision hit buffers
     movement_hit_buffer: Vec<Vec<Hit>>,
@@ -50,6 +51,7 @@ impl PlayerUnitMgr {
 
         let collider_i = Vec::with_capacity(MAX_UNIT_COUNT);
         let sprite_i = Vec::with_capacity(MAX_UNIT_COUNT);
+        let scene_object_i = Vec::with_capacity(MAX_UNIT_COUNT);
 
         let movement_hit_buffer = Vec::with_capacity(MAX_UNIT_COUNT);
         let selection_hit = Vec::with_capacity(MAX_UNIT_COUNT);
@@ -70,6 +72,7 @@ impl PlayerUnitMgr {
 
             collider_i,
             sprite_i,
+            scene_object_i,
 
             movement_hit_buffer,
             selection_hit,
@@ -86,6 +89,7 @@ impl PlayerUnitMgr {
         &mut self,
         move_speed: f32,
         team: PlayerTeam,
+        scene_object_i: usize,
         sprite_mgr: &mut SpriteMgr,
         collider_mgr: &mut ColliderMgr,
         texture_mgr: &mut Texture2dMgr,
@@ -139,6 +143,8 @@ impl PlayerUnitMgr {
         let collider_i = collider_mgr.add_from_sprite(sprite_i, None, sprite_mgr);
         self.collider_i.push(Some(collider_i));
         collider_mgr.render_bbox[collider_i] = false;
+
+        self.scene_object_i.push(scene_object_i);
 
         // Set not active
         self.set_active(index, false, sprite_mgr, collider_mgr);
@@ -216,12 +222,37 @@ impl PlayerUnitMgr {
             let position = scene_mgr.object_position[*scene_object_i].unwrap();
 
             let new_index = self
-                .add(move_speed, team, sprite_mgr, collider_mgr, texture_mgr)
+                .add(
+                    move_speed,
+                    team,
+                    *scene_object_i,
+                    sprite_mgr,
+                    collider_mgr,
+                    texture_mgr,
+                )
                 .await;
 
             sprite_mgr.set_position(self.sprite_i[new_index].unwrap(), position);
 
             self.set_active(new_index, start_active, sprite_mgr, collider_mgr);
+        }
+    }
+
+    pub fn despawn(
+        &mut self,
+        scene_mgr: &SceneMgr,
+        collider_mgr: &mut ColliderMgr,
+        sprite_mgr: &mut SpriteMgr,
+    ) {
+        'scene_iter: for scene_object_i in &scene_mgr.objects_to_despawn {
+            if scene_mgr.object_class[*scene_object_i].as_ref().unwrap() == "PlayerUnit" {
+                for index in 0..self.len() {
+                    if self.scene_object_i[index] == *scene_object_i && self.is_active(index) {
+                        self.set_active(index, false, sprite_mgr, collider_mgr);
+                        continue 'scene_iter;
+                    }
+                }
+            }
         }
     }
 
@@ -251,7 +282,7 @@ impl PlayerUnitMgr {
 
         for i in 0..self.len() {
             // Selection
-            if !self.is_active[i] {
+            if !self.is_active(i) {
                 continue;
             }
 
@@ -294,7 +325,7 @@ impl PlayerUnitMgr {
         collider_mgr: &mut ColliderMgr,
     ) {
         for i in 0..self.len() {
-            if !self.is_active[i] {
+            if !self.is_active(i) {
                 continue;
             }
 
@@ -377,7 +408,7 @@ impl PlayerUnitMgr {
 
     pub fn render(&self, collider_mgr: &ColliderMgr) {
         for i in 0..self.len() {
-            if !self.is_selected[i] || !self.is_active[i] {
+            if !self.is_selected[i] || !self.is_active(i) {
                 continue;
             }
 

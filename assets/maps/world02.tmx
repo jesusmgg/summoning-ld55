@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="27">
+ <tileset firstgid="1" source="../tilesets/world01.tsx"/>
+ <layer id="1" name="Ground" width="30" height="17">
+  <data encoding="base64" compression="zstd">
+   KLUv/WD4BuUAADABAAAAAgEHAElAQS1QAXBo24MKDKQDLit75bI=
+  </data>
+ </layer>
+ <objectgroup id="3" name="Objects">
+  <object id="7" type="Wall" x="288.801" y="349.241" width="320.211" height="127.429"/>
+  <object id="23" template="../templates/PlayerUnit.tx" x="596.599" y="165.182"/>
+  <object id="24" template="../templates/SummoningCircle.tx" type="SummoningCircle" x="777.328" y="185.588"/>
+  <object id="25" template="../templates/PlayerUnit.tx" x="609.231" y="289.555"/>
+  <object id="26" type="Wall" x="288.801" y="225.84" width="63.6928" height="117.712"/>
+ </objectgroup>
+</map>
