@@ -1,7 +1,7 @@
 use std::mem;
 
 use macroquad::{
-    camera::{set_camera, Camera2D},
+    camera::{pop_camera_state, push_camera_state, set_camera, set_default_camera, Camera2D},
     input::mouse_position,
     math::{f32, Rect},
 };
@@ -67,6 +67,17 @@ impl CameraMgr {
             Some(i) => Some(&self.camera[i]),
             None => None,
         }
+    }
+
+    /// Push active camera and activates normal screen space camera
+    pub fn push_active_camera(&self) {
+        push_camera_state();
+        set_default_camera();
+    }
+
+    /// Pop and restore active camera
+    pub fn pop_active_camera(&self) {
+        pop_camera_state();
     }
 
     /// Get mouse world position using current camera
