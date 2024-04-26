@@ -19,8 +19,10 @@ Runs only once after initial instantiation.
 ### spawn
 Runs at scene activation. Initialization logic that should be repeated after a new scene is activated should take place here. For example, the `Player` system activating its sprite at the position set in the scene.
 
+Reading the scene and instantiating objects defined in it is the most common use case for this function.
+
 ### despawn
-`TODO`
+Runs at scene desactivation. Objects that belong to the scene being deactivated should be cleaned up here.
 
 ### input
 Runs each frame.
