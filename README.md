@@ -1,7 +1,9 @@
-# Ludum Dare 55 entry
+# Ludum Dare 55 entry (unfinished)
 Theme: Summoning
 
 Base code is from my bespoke engine `pipe-warp`, which is a 2D game engine built on top of Rust, Macroquad and Tiled.
+
+I'm keeping this to archive an early development version of the engine.
 
 
 ## Engine lifecycle functions
